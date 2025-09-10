@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Utility Microgrid Configurator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #2ecc71;
+            height: 100%;
+            width: 14%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .section-description {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.05em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            min-width: 250px;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            position: relative;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: "?";
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .tooltip:hover::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            max-width: 300px;
+            white-space: normal;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .slider-container {
+            margin-top: 10px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e6ed;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .slider-value {
+            text-align: center;
+            margin-top: 8px;
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .checkbox-group, .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item, .radio-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 12px;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .checkbox-item:hover, .radio-item:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .checkbox-item input, .radio-item input {
+            margin-right: 8px;
+            width: auto;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #ecf0f1;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .summary-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .summary-content {
+            color: #34495e;
+            line-height: 1.6;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+
+        .step-indicator {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #7f8c8d;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .checkbox-group, .radio-group {
+                flex-direction: column;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Water Utility Microgrid Configurator</h1>
+            <p>Comprehensive assessment tool for solar + battery energy storage systems</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Section 1: Project Overview -->
+            <div class="section active" id="section1">
+                <div class="step-indicator">Step 1 of 7</div>
+                <h2 class="section-title">Project Overview</h2>
+                <p class="section-description">Basic project information and timeline</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="utility_name">Utility Name *</label>
+                        <input type="text" id="utility_name" name="utility_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact_name">Primary Contact *</label>
+                        <input type="text" id="contact_name" name="contact_name" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact_email">Email *</label>
+                        <input type="email" id="contact_email" name="contact_email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact_phone">Phone</label>
+                        <input type="tel" id="contact_phone" name="contact_phone">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="location">Pump Station Location *</label>
+                        <input type="text" id="location" name="location" placeholder="City, State" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="project_timeline">Expected Timeline
+                            <span class="tooltip" data-tooltip="When do you hope to have the system operational?"></span>
+                        </label>
+                        <select id="project_timeline" name="project_timeline">
+                            <option value="">Select timeline</option>
+                            <option value="6_months">Within 6 months</option>
+                            <option value="12_months">6-12 months</option>
+                            <option value="18_months">12-18 months</option>
+                            <option value="24_months">18-24 months</option>
+                            <option value="longer">More than 2 years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="project_description">Project Description</label>
+                    <textarea id="project_description" name="project_description" rows="3" placeholder="Brief description of the project goals and context"></textarea>
+                </div>
+            </div>
+
+            <!-- Section 2: Pump Station Specifications -->
+            <div class="section" id="section2">
+                <div class="step-indicator">Step 2 of 7</div>
+                <h2 class="section-title">Pump Station Specifications</h2>
+                <p class="section-description">Electrical load characteristics and operational details</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pump_count">Number of Pumps *</label>
+                        <input type="number" id="pump_count" name="pump_count" min="1" max="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pump_voltage">System Voltage *
+                            <span class="tooltip" data-tooltip="Main electrical service voltage level"></span>
+                        </label>
+                        <select id="pump_voltage" name="pump_voltage" required>
+                            <option value="">Select voltage</option>
+                            <option value="480V">480V</option>
+                            <option value="4160V">4.16kV</option>
+                            <option value="12470V">12.47kV</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="total_connected_load">Total Connected Load (kW) *
+                        <span class="tooltip" data-tooltip="Sum of all pump nameplate ratings plus auxiliary loads"></span>
+                    </label>
+                    <div class="slider-container">
+                        <input type="range" id="total_connected_load" name="total_connected_load" min="50" max="5000" value="500" class="slider">
+                        <div class="slider-value" id="connected_load_value">500 kW</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="typical_demand">Typical Operating Demand (kW) *
+                        <span class="tooltip" data-tooltip="Normal operating load during peak demand periods"></span>
+                    </label>
+                    <div class="slider-container">
+                        <input type="range" id="typical_demand" name="typical_demand" min="25" max="3000" value="300" class="slider">
+                        <div class="slider-value" id="typical_demand_value">300 kW</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="min_demand">Minimum Operating Demand (kW) *
+                        <span class="tooltip" data-tooltip="Lowest operational load (often 1-2 pumps running)"></span>
+                    </label>
+                    <div class="slider-container">
+                        <input type="range" id="min_demand" name="min_demand" min="10" max="1000" value="100" class="slider">
+                        <div class="slider-value" id="min_demand_value">100 kW</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Variable Frequency Drives (VFDs) *</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="vfd_all" name="vfd_status" value="all_pumps">
+                            <label for="vfd_all">All pumps have VFDs</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="vfd_some" name="vfd_status" value="some_pumps">
+                            <label for="vfd_some">Some pumps have VFDs</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="vfd_none" name="vfd_status" value="no_vfds">
+                            <label for="vfd_none">No VFDs installed</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pump Station Criticality *
+                        <span class="tooltip" data-tooltip="How critical is continuous operation to the water system?"></span>
+                    </label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="critical_high" name="criticality" value="high">
+                            <label for="critical_high">High - System failure impacts thousands</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="critical_medium" name="criticality" value="medium">
+                            <label for="critical_medium">Medium - Regional impact</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="critical_low" name="criticality" value="low">
+                            <label for="critical_low">Low - Local impact only</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Existing Infrastructure -->
+            <div class="section" id="section3">
+                <div class="step-indicator">Step 3 of 7</div>
+                <h2 class="section-title">Existing Infrastructure</h2>
+                <p class="section-description">Current backup systems and site conditions</p>
+
+                <div class="form-group">
+                    <label>Existing Backup Power</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="backup_diesel" name="backup_power" value="diesel">
+                            <label for="backup_diesel">Diesel Generator</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="backup_natural_gas" name="backup_power" value="natural_gas">
+                            <label for="backup_natural_gas">Natural Gas Generator</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="backup_none" name="backup_power" value="none">
+                            <label for="backup_none">No Backup Power</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="generator_capacity">Backup Generator Capacity (kW)
+                            <span class="tooltip" data-tooltip="Total capacity of existing generators"></span>
+                        </label>
+                        <input type="number" id="generator_capacity" name="generator_capacity" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="generator_age">Generator Age (years)</label>
+                        <input type="number" id="generator_age" name="generator_age" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="available_land">Available Land Area (sq ft) *
+                        <span class="tooltip" data-tooltip="Usable area for solar panels and equipment"></span>
+                    </label>
+                    <div class="slider-container">
+                        <input type="range" id="available_land" name="available_land" min="1000" max="100000" value="20000" class="slider">
+                        <div class="slider-value" id="available_land_value">20,000 sq ft</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Site Characteristics</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="site_shading" name="site_characteristics" value="shading">
+                            <label for="site_shading">Significant Shading</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="site_flood" name="site_characteristics" value="flood_prone">
+                            <label for="site_flood">Flood Prone Area</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="site_wetlands" name="site_characteristics" value="wetlands">
+                            <label for="site_wetlands">Near Wetlands</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="site_slopes" name="site_characteristics" value="slopes">
+                            <label for="site_slopes">Significant Slopes</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>SCADA/Remote Monitoring</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="scada_full" name="scada_status" value="full">
+                            <label for="scada_full">Full SCADA System</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="scada_basic" name="scada_status" value="basic">
+                            <label for="scada_basic">Basic Monitoring</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="scada_none" name="scada_status" value="none">
+                            <label for="scada_none">No Remote Monitoring</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Utility Rates & Economics -->
+            <div class="section" id="section4">
+                <div class="step-indicator">Step 4 of 7</div>
+                <h2 class="section-title">Utility Rates & Economics</h2>
+                <p class="section-description">Current electricity costs and rate structure</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="electric_utility">Electric Utility Provider *</label>
+                        <input type="text" id="electric_utility" name="electric_utility" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rate_schedule">Rate Schedule
+                            <span class="tooltip" data-tooltip="Utility rate schedule designation (e.g. E-19, TOU-8)"></span>
+                        </label>
+                        <input type="text" id="rate_schedule" name="rate_schedule">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="energy_rate">Average Energy Rate ($/kWh) *
+                            <span class="tooltip" data-tooltip="Blended average energy rate including all charges"></span>
+                        </label>
+                        <input type="number" id="energy_rate" name="energy_rate" step="0.001" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="demand_charge">Demand Charge ($/kW) *
+                            <span class="tooltip" data-tooltip="Monthly demand charge per kW of peak demand"></span>
+                        </label>
+                        <input type="number" id="demand_charge" name="demand_charge" step="0.01" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="annual_energy_cost">Annual Energy Cost ($) *
+                        <span class="tooltip" data-tooltip="Total annual electricity bill for this facility"></span>
+                    </label>
+                    <div class="slider-container">
+                        <input type="range" id="annual_energy_cost" name="annual_energy_cost" min="10000" max="2000000" value="200000" class="slider">
+                        <div class="slider-value" id="annual_cost_value">$200,000</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Time-of-Use (TOU) Rates</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="tou_yes" name="tou_rates" value="yes">
+                            <label for="tou_yes">Yes - Peak/Off-Peak rates</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="tou_no" name="tou_rates" value="no">
+                            <label for="tou_no">No - Flat rates</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="tou_unknown" name="tou_rates" value="unknown">
+                            <label for="tou_unknown">Unknown</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Net Metering Available</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="net_meter_yes" name="net_metering" value="yes">
+                            <label for="net_meter_yes">Yes</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="net_meter_no" name="net_metering" value="no">
+                            <label for="net_meter_no">No</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="net_meter_unknown" name="net_metering" value="unknown">
+                            <label for="net_meter_unknown">Unknown</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Available Incentives</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="incentive_federal" name="incentives" value="federal_itc">
+                            <label for="incentive_federal">Federal ITC</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="incentive_state" name="incentives" value="state">
+                            <label for="incentive_state">State Incentives</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="incentive_utility" name="incentives" value="utility">
+                            <label for="incentive_utility">Utility Rebates</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="incentive_grants" name="incentives" value="grants">
+                            <label for="incentive_grants">Grant Funding</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Resilience Requirements -->
+            <div class="section" id="section5">
+                <div class="step-indicator">Step 5 of 7</div>
+                <h2 class="section-title">Resilience Requirements</h2>
+                <p class="section-description">Power outage history and backup power needs</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="outages_per_year">Power Outages per Year *
+                            <span class="tooltip" data-tooltip="Number of significant power outages in the past 3 years (average)"></span>
+                        </label>
+                        <input type="number" id="outages_per_year" name="outages_per_year" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="average_outage_duration">Average Outage Duration (hours) *</label>
+                        <input type="number" id="average_outage_duration" name="average_outage_duration" min="0" step="0.5" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="longest_outage">Longest Outage Duration (hours) *
+                        <span class="tooltip" data-tooltip="Longest single outage experienced in recent years"></span>
+                    </label>
+                    <input type="number" id="longest_outage" name="longest_outage" min="0" step="0.5" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="backup_duration_required">Required Backup Duration (hours) *
+                        <span class="tooltip" data-tooltip="How long must the system operate during an outage?"></span>
+                    </label>
+                    <div class="slider-container">
+                        <input type="range" id="backup_duration_required" name="backup_duration_required" min="2" max="72" value="8" class="slider">
+                        <div class="slider-value" id="backup_duration_value">8 hours</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Outage Causes (Check all that apply)</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="outage_weather" name="outage_causes" value="weather">
+                            <label for="outage_weather">Weather Events</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="outage_equipment" name="outage_causes" value="equipment">
+                            <label for="outage_equipment">Equipment Failure</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="outage_grid" name="outage_causes" value="grid">
+                            <label for="outage_grid">Grid Instability</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="outage_maintenance" name="outage_causes" value="maintenance">
+                            <label for="outage_maintenance">Planned Maintenance</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Critical Load During Outage</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="critical_full" name="critical_load" value="full">
+                            <label for="critical_full">Full Load (All pumps)</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="critical_partial" name="critical_load" value="partial">
+                            <label for="critical_partial">Partial Load (Essential pumps)</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="critical_minimum" name="critical_load" value="minimum">
+                            <label for="critical_minimum">Minimum Load (1-2 pumps)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="generator_issues">Current Generator Issues</label>
+                    <textarea id="generator_issues" name="generator_issues" rows="3" placeholder="Describe any reliability, maintenance, or fuel supply issues with existing backup power"></textarea>
+                </div>
+            </div>
+
+            <!-- Section 6: Project Goals & Drivers -->
+            <div class="section" id="section6">
+                <div class="step-indicator">Step 6 of 7</div>
+                <h2 class="section-title">Project Goals & Drivers</h2>
+                <p class="section-description">Motivations, budget, and constraints</p>
+
+                <div class="form-group">
+                    <label>Primary Project Drivers (Select top 3)</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="driver_cost" name="project_drivers" value="cost_reduction">
+                            <label for="driver_cost">Cost Reduction</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="driver_resilience" name="project_drivers" value="resilience">
+                            <label for="driver_resilience">Grid Resilience</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="driver_sustainability" name="project_drivers" value="sustainability">
+                            <label for="driver_sustainability">Sustainability Goals</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="driver_reliability" name="project_drivers" value="reliability">
+                            <label for="driver_reliability">Improve Reliability</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="driver_regulatory" name="project_drivers" value="regulatory">
+                            <label for="driver_regulatory">Regulatory Compliance</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="driver_grants" name="project_drivers" value="grants">
+                            <label for="driver_grants">Grant Opportunities</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="budget_range">Project Budget Range *</label>
+                    <select id="budget_range" name="budget_range" required>
+                        <option value="">Select budget range</option>
+                        <option value="under_500k">Under $500K</option>
+                        <option value="500k_1m">$500K - $1M</option>
+                        <option value="1m_2m">$1M - $2M</option>
+                        <option value="2m_5m">$2M - $5M</option>
+                        <option value="5m_10m">$5M - $10M</option>
+                        <option value="over_10m">Over $10M</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="payback_expectation">Acceptable Payback Period *</label>
+                    <select id="payback_expectation" name="payback_expectation" required>
+                        <option value="">Select payback period</option>
+                        <option value="under_5">Under 5 years</option>
+                        <option value="5_7">5-7 years</option>
+                        <option value="7_10">7-10 years</option>
+                        <option value="10_15">10-15 years</option>
+                        <option value="over_15">Over 15 years</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Financing Preferences</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="finance_cash" name="financing" value="cash">
+                            <label for="finance_cash">Cash Purchase</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="finance_loan" name="financing" value="loan">
+                            <label for="finance_loan">Traditional Loan</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="finance_lease" name="financing" value="lease">
+                            <label for="finance_lease">Equipment Lease</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="finance_ppa" name="financing" value="ppa">
+                            <label for="finance_ppa">Power Purchase Agreement</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="finance_bonds" name="financing" value="bonds">
+                            <label for="finance_bonds">Municipal Bonds</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Key Constraints</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="constraint_budget" name="constraints" value="budget">
+                            <label for="constraint_budget">Limited Budget</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="constraint_land" name="constraints" value="land">
+                            <label for="constraint_land">Limited Land</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="constraint_permitting" name="constraints" value="permitting">
+                            <label for="constraint_permitting">Permitting Challenges</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="constraint_interconnection" name="constraints" value="interconnection">
+                            <label for="constraint_interconnection">Utility Interconnection</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="constraint_environmental" name="constraints" value="environmental">
+                            <label for="constraint_environmental">Environmental Review</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="additional_notes">Additional Notes or Requirements</label>
+                    <textarea id="additional_notes" name="additional_notes" rows="4" placeholder="Any other important considerations, special requirements, or questions"></textarea>
+                </div>
+            </div>
+
+            <!-- Section 7: Summary -->
+            <div class="section" id="section7">
+                <div class="step-indicator">Step 7 of 7</div>
+                <h2 class="section-title">Summary & Review</h2>
+                <p class="section-description">Review your configuration before submission</p>
+
+                <div id="summary-content">
+                    <!-- Summary will be populated by JavaScript -->
+                </div>
+
+                <div class="alert alert-success">
+                    <strong>Configuration Complete!</strong> Your microgrid assessment data has been captured. A sales engineer will review these details and contact you with preliminary sizing and cost estimates.
+                </div>
+
+                <div class="form-group">
+                    <label for="submit_notes">Final Comments</label>
+                    <textarea id="submit_notes" name="submit_notes" rows="3" placeholder="Any final thoughts or priority items to highlight"></textarea>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="navigation">
+                <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeSection(-1)">Previous</button>
+                <div></div>
+                <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeSection(1)">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSection = 1;
+        const totalSections = 7;
+        const formData = {};
+
+        // Initialize the form
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+            updateNavigation();
+            setupSliders();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Track form changes
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    saveFormData();
+                });
+            });
+
+            // Handle checkbox exclusivity
+            const backupNone = document.getElementById('backup_none');
+            if (backupNone) {
+                backupNone.addEventListener('change', function() {
+                    if (this.checked) {
+                        document.querySelectorAll('input[name="backup_power"]:not(#backup_none)').forEach(cb => {
+                            cb.checked = false;
+                        });
+                    }
+                });
+            }
+
+            // Clear "none" when other backup options selected
+            document.querySelectorAll('input[name="backup_power"]:not(#backup_none)').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    if (this.checked && backupNone) {
+                        backupNone.checked = false;
+                    }
+                });
+            });
+        }
+
+        // Setup sliders with dynamic values
+        function setupSliders() {
+            const sliders = [
+                { id: 'total_connected_load', suffix: ' kW', formatter: (v) => parseInt(v).toLocaleString() },
+                { id: 'typical_demand', suffix: ' kW', formatter: (v) => parseInt(v).toLocaleString() },
+                { id: 'min_demand', suffix: ' kW', formatter: (v) => parseInt(v).toLocaleString() },
+                { id: 'available_land', suffix: ' sq ft', formatter: (v) => parseInt(v).toLocaleString() },
+                { id: 'annual_energy_cost', suffix: '', formatter: (v) => '$' + parseInt(v).toLocaleString() },
+                { id: 'backup_duration_required', suffix: ' hours', formatter: (v) => parseInt(v) }
+            ];
+
+            sliders.forEach(slider => {
+                const element = document.getElementById(slider.id);
+                const valueElement = document.getElementById(slider.id.replace(slider.id.split('_').pop(), 'value'));
+                
+                if (element && valueElement) {
+                    element.addEventListener('input', function() {
+                        const formattedValue = slider.formatter(this.value) + slider.suffix;
+                        valueElement.textContent = formattedValue;
+                    });
+                    
+                    // Initialize display
+                    const formattedValue = slider.formatter(element.value) + slider.suffix;
+                    valueElement.textContent = formattedValue;
+                }
+            });
+        }
+
+        // Save form data
+        function saveFormData() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    if (!formData[input.name]) formData[input.name] = [];
+                    if (input.checked && !formData[input.name].includes(input.value)) {
+                        formData[input.name].push(input.value);
+                    } else if (!input.checked) {
+                        formData[input.name] = formData[input.name].filter(v => v !== input.value);
+                    }
+                } else if (input.type === 'radio') {
+                    if (input.checked) {
+                        formData[input.name] = input.value;
+                    }
+                } else {
+                    formData[input.name] = input.value;
+                }
+            });
+        }
+
+        // Change section
+        function changeSection(direction) {
+            const newSection = currentSection + direction;
+            
+            if (newSection < 1 || newSection > totalSections) return;
+            
+            // Validate current section before proceeding
+            if (direction > 0 && !validateSection(currentSection)) {
+                return;
+            }
+            
+            // Hide current section
+            document.getElementById(`section${currentSection}`).classList.remove('active');
+            
+            // Show new section
+            currentSection = newSection;
+            document.getElementById(`section${currentSection}`).classList.add('active');
+            
+            // Update progress and navigation
+            updateProgress();
+            updateNavigation();
+            
+            // Generate summary if on last section
+            if (currentSection === totalSections) {
+                generateSummary();
+            }
+            
+            // Scroll to top
+            document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Validate section
+        function validateSection(sectionNum) {
+            const section = document.getElementById(`section${sectionNum}`);
+            const requiredInputs = section.querySelectorAll('input[required], select[required]');
+            let isValid = true;
+            
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.style.borderColor = '#e74c3c';
+                    isValid = false;
+                } else {
+                    input.style.borderColor = '#e0e6ed';
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill out all required fields before proceeding.');
+            }
+            
+            return isValid;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentSection / totalSections) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Update navigation buttons
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentSection === 1;
+            
+            if (currentSection === totalSections) {
+                nextBtn.textContent = 'Submit Configuration';
+                nextBtn.onclick = submitForm;
+            } else {
+                nextBtn.textContent = 'Next';
+                nextBtn.onclick = () => changeSection(1);
+            }
+        }
+
+        // Generate summary
+        function generateSummary() {
+            saveFormData();
+            
+            const summaryContent = document.getElementById('summary-content');
+            let html = '';
+            
+            // Project Overview
+            html += '<div class="summary-section">';
+            html += '<div class="summary-title">Project Overview</div>';
+            html += '<div class="summary-content">';
+            html += `<strong>Utility:</strong> ${formData.utility_name || 'Not specified'}<br>`;
+            html += `<strong>Location:</strong> ${formData.location || 'Not specified'}<br>`;
+            html += `<strong>Contact:</strong> ${formData.contact_name || 'Not specified'} (${formData.contact_email || 'Not specified'})<br>`;
+            html += `<strong>Timeline:</strong> ${getSelectText('project_timeline') || 'Not specified'}`;
+            html += '</div></div>';
+            
+            // Load Profile
+            html += '<div class="summary-section">';
+            html += '<div class="summary-title">Load Profile</div>';
+            html += '<div class="summary-content">';
+            html += `<strong>Connected Load:</strong> ${formData.total_connected_load || 0} kW<br>`;
+            html += `<strong>Typical Demand:</strong> ${formData.typical_demand || 0} kW<br>`;
+            html += `<strong>Minimum Demand:</strong> ${formData.min_demand || 0} kW<br>`;
+            html += `<strong>Number of Pumps:</strong> ${formData.pump_count || 'Not specified'}<br>`;
+            html += `<strong>VFDs:</strong> ${getRadioText('vfd_status') || 'Not specified'}`;
+            html += '</div></div>';
+            
+            // Economics
+            html += '<div class="summary-section">';
+            html += '<div class="summary-title">Economics</div>';
+            html += '<div class="summary-content">';
+            html += `<strong>Annual Energy Cost:</strong> $${parseInt(formData.annual_energy_cost || 0).toLocaleString()}<br>`;
+            html += `<strong>Energy Rate:</strong> $${formData.energy_rate || 0}/kWh<br>`;
+            html += `<strong>Demand Charge:</strong> $${formData.demand_charge || 0}/kW<br>`;
+            html += `<strong>Budget Range:</strong> ${getSelectText('budget_range') || 'Not specified'}`;
+            html += '</div></div>';
+            
+            // Resilience
+            html += '<div class="summary-section">';
+            html += '<div class="summary-title">Resilience Requirements</div>';
+            html += '<div class="summary-content">';
+            html += `<strong>Outages per Year:</strong> ${formData.outages_per_year || 0}<br>`;
+            html += `<strong>Required Backup Duration:</strong> ${formData.backup_duration_required || 0} hours<br>`;
+            html += `<strong>Critical Load Level:</strong> ${getRadioText('critical_load') || 'Not specified'}<br>`;
+            html += `<strong>Existing Backup:</strong> ${getCheckboxText('backup_power') || 'None specified'}`;
+            html += '</div></div>';
+            
+            summaryContent.innerHTML = html;
+        }
+
+        // Helper functions
+        function getSelectText(name) {
+            const select = document.querySelector(`select[name="${name}"]`);
+            return select ? select.options[select.selectedIndex]?.text : '';
+        }
+
+        function getRadioText(name) {
+            const radio = document.querySelector(`input[name="${name}"]:checked`);
+            const label = radio ? document.querySelector(`label[for="${radio.id}"]`) : null;
+            return label ? label.textContent : '';
+        }
+
+        function getCheckboxText(name) {
+            const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+            const labels = Array.from(checkboxes).map(cb => {
+                const label = document.querySelector(`label[for="${cb.id}"]`);
+                return label ? label.textContent : '';
+            });
+            return labels.join(', ');
+        }
+
+        // Submit form
+        function submitForm() {
+            if (!validateSection(currentSection)) return;
+            
+            saveFormData();
+            
+            // Simulate form submission
+            const submitBtn = document.getElementById('nextBtn');
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
+                alert('Configuration submitted successfully!\n\nA sales engineer will review your requirements and contact you within 1-2 business days with preliminary sizing and cost estimates.\n\nYou will receive a copy of this configuration at: ' + (formData.contact_email || 'your email'));
+                
+                // Reset form or redirect
+                submitBtn.textContent = 'Submit Configuration';
+                submitBtn.disabled = false;
+            }, 2000);
+        }
+
+        // Initialize
+        updateProgress();
+        updateNavigation();
+    </script>
+</body>
+</html>
